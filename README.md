@@ -1,2 +1,2 @@
-# Physical-Web-CMS-Web
-Web server to host content produced by Physical Web CMS Android app
+# Physical Web CMS Server
+Web server to host content produced by Physical Web CMS Android app.
