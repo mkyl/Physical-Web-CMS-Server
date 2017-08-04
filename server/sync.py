@@ -44,13 +44,24 @@ def get_credentials():
 
     return credentials
 
-def main():
-    """
-    Shows basic usage of the Google Drive API.
+def get_exhibit_folder(service):
+    query = "mimeType = 'application/vnd.google-apps.folder' \
+        and 'appDataFolder' in parents"
+    results = service.files().list(
+        spaces='appDataFolder',
+        q = query,
+        pageSize=10,
+        fields="nextPageToken, files(id, name)").execute()
+    items = results.get('files', [])
+    if not items:
+        print('No files found.')
+    else:
+        print('Files:')
+        for item in items:
+            print('{0} ({1})'.format(item['name'], item['id']))
 
-    Creates a Google Drive API service object and outputs the names and IDs
-    for up to 10 files.
-    """
+def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('drive', 'v3', http=http)
+    get_exhibit_folder(service)
