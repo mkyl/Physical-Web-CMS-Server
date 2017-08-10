@@ -1,4 +1,5 @@
 import sync
+import presentation
 
 import os
 import http
@@ -6,14 +7,16 @@ import socketserver
 import _thread
 import time
 
-MODULE_FOLDER = os.path.dirname(__file__)
+MODULE_FOLDER = os.path.abspath(os.path.dirname(__file__))
 MODULE_PARENT = os.path.dirname(MODULE_FOLDER)
 CONTENT_FOLDER = os.path.join(MODULE_PARENT, "data") 
+PUBLIC_FOLDER = os.path.join(MODULE_PARENT, "export")
+
 PORT = 8080
-CHECK_INTERVAL = 300 # seconds
+CHECK_INTERVAL = 60 # seconds
 
 def start_server():
-    os.chdir(CONTENT_FOLDER)
+    os.chdir(PUBLIC_FOLDER)
     Handler = http.server.SimpleHTTPRequestHandler
     httpd = socketserver.TCPServer(("", PORT), Handler)
     print(" [🛈] serving at port", PORT)
@@ -27,11 +30,16 @@ def start_server():
 def check_on_content():
     while True:
         time.sleep(CHECK_INTERVAL)
-        sync.initialSync(CONTENT_FOLDER)
+        prepare_content()
+
+def prepare_content():
+    sync.initialSync(CONTENT_FOLDER)
+    presentation.build_website(CONTENT_FOLDER, PUBLIC_FOLDER)
 
 def main():
-    sync.initialSync(CONTENT_FOLDER)
+    prepare_content()
     _thread.start_new_thread(check_on_content, ())
+    # must be run last because it occupies thread
     start_server()
 
 if __name__ == "__main__":
