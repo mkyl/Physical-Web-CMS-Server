@@ -102,3 +102,4 @@ ENV/
 
 # drive contents
 /data/
+/export/
