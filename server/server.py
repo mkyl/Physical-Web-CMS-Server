@@ -13,7 +13,7 @@ CONTENT_FOLDER = os.path.join(MODULE_PARENT, "data")
 PUBLIC_FOLDER = os.path.join(MODULE_PARENT, "export")
 
 PORT = 8080
-CHECK_INTERVAL = 60 # seconds
+CHECK_INTERVAL = 120 # seconds
 
 def start_server():
     os.chdir(PUBLIC_FOLDER)
@@ -22,15 +22,19 @@ def start_server():
     print(" [🛈] serving at port", PORT)
 
     try:
-        httpd.serve_forever(); 
+        httpd.serve_forever();
     except KeyboardInterrupt:
         pass
     httpd.server_close()
 
 def check_on_content():
-    while True:
-        time.sleep(CHECK_INTERVAL)
-        prepare_content()
+    try:
+        while True:
+            for i in range(CHECK_INTERVAL):
+                time.sleep(1) # 1 second
+            prepare_content()
+    except KeyboardInterrupt:
+        pass
 
 def prepare_content():
     sync.initialSync(CONTENT_FOLDER)
