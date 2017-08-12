@@ -1,9 +1,13 @@
-import json
 import os
+import json
+import urllib.request
+import mimetypes
 from pathlib import Path
+from distutils.dir_util import copy_tree
 
-HOME_PAGE_HEADER = "<!DOCTYPE html> \n <html> \n <body>"
-HOME_PAGE_FOOTER = "</body> \n </html>"
+
+HTML_PAGE_HEADER = "<!DOCTYPE html> \n <html> \n <body>"
+HTML_PAGE_FOOTER = "</body> \n </html>"
 
 def _decorate_h1(text):
     return "<h1>" + text + "</h1>"
@@ -25,14 +29,27 @@ def _decorate_unordered_list(items):
     result = "".join(result)
     return result
 
-def _decorate_sound_content(sound):
-    return None
+def _decorate_content(content):
+    url = urllib.request.pathname2url(content)
+    mimetype = mimetypes.guess_type(url)[0].lower()
+    if mimetype.startswith("image/"):
+        return _decorate_image_content(content)
+    elif mimetype.startswith("audio/"):
+        return _decorate_sound_content(content)
+    elif mimetype.startswith("video/"):
+        return _decorate_video_content(content)
+    else:
+        raise ValueError("Couldn't determine filetype: " + content)
 
 def _decorate_image_content(image):
-    return None
+    return '<img src="{image_url}"/>\n'.format(image_url=image)
+
+def _decorate_sound_content(sound):
+    return '<audio controls src="{sound_url}"></audio>\n'.format(sound_url=sound)
 
 def _decorate_video_content(video):
-    return None
+    return '<video controls src="{video_url}"></video>\n'.format(video_url=video)
+
 
 def _build_index_page(website_metadata, public_folder):
     index_filename = "index.html"
@@ -46,14 +63,35 @@ def _build_index_page(website_metadata, public_folder):
         beacons.append(beacon["address"])
 
     page = []
-    page.append(HOME_PAGE_HEADER)
+    page.append(HTML_PAGE_HEADER)
     page.append(_decorate_h1(title))
     page.append(_decorate_subtitle(subtitle))
     page.append(_decorate_unordered_list(beacons))
-    page.append(HOME_PAGE_FOOTER)
+    page.append(HTML_PAGE_FOOTER)
     page = ''.join(page)
 
     with open(index_file, 'w') as f:
+        f.write(page)
+
+def _build_content_page(beacon, public_folder):
+    content_filename = "index.html"
+    content_file = os.path.join(public_folder, content_filename)
+    Path(content_file).touch(exist_ok=True)
+
+    title = beacon["address"]
+    contents_html = []
+    for content in beacon["contents"]:
+        contents_html.append(_decorate_content(content))
+    contents_html = ''.join(contents_html)
+
+    page = []
+    page.append(HTML_PAGE_HEADER)
+    page.append(_decorate_h1(title))
+    page.append(contents_html)
+    page.append(HTML_PAGE_FOOTER)
+    page = ''.join(page)
+
+    with open(content_file, 'w') as f:
         f.write(page)
 
 def _find_active_exhibit(exhibits_folder):
@@ -70,8 +108,10 @@ def _fetch_metadata(content_folder):
 
 def build_website(exhibits_folder, public_folder):
     os.makedirs(public_folder, exist_ok=True)
-    active_exhibit_folder = _find_active_exhibit(exhibits_folder) 
-    website_metadata = _fetch_metadata(active_exhibit_folder)
-    _build_index_page(website_metadata, public_folder)
-    #for beacon in website_metadata["beacons"]:
-        #build_content_page(beacon)
+    active_exhibit_folder = _find_active_exhibit(exhibits_folder)
+    copy_tree(active_exhibit_folder, public_folder)
+    exhibit_metadata = _fetch_metadata(active_exhibit_folder)
+    _build_index_page(exhibit_metadata, public_folder)
+    for beacon in exhibit_metadata["beacons"]:
+        beacon_folder = os.path.join(public_folder, beacon["address"])
+        _build_content_page(beacon, beacon_folder)
