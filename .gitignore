@@ -103,3 +103,6 @@ ENV/
 # drive contents
 /data/
 /export/
+
+# secret keys
+client_secret.json
