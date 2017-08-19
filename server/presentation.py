@@ -131,6 +131,7 @@ def _fetch_metadata(content_folder):
         return json.load(data_file)
 
 def build_website(exhibits_folder, public_folder):
+    print(" [i] Creating HTML")
     os.makedirs(public_folder, exist_ok=True)
     active_exhibit_folder = _find_active_exhibit(exhibits_folder)
     beacon_friendly_names = _find_beacon_friendly_names(exhibits_folder)
@@ -141,3 +142,4 @@ def build_website(exhibits_folder, public_folder):
     for beacon in exhibit_metadata["beacons"]:
         beacon_folder = os.path.join(public_folder, beacon["address"])
         _build_content_page(beacon, beacon_friendly_names, beacon_folder)
+    print(" [✓] Website exported to " + os.path.abspath(public_folder))

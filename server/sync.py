@@ -82,7 +82,7 @@ def _download_drive_file(drive_file, local_folder, drive_service):
         modified_local = datetime.fromtimestamp(os.path.getmtime(local_file_name))
         modified_local = TZ.localize(modified_local)
         if modified_local > modified_remote:
-            print(" [🛈] File cached, not downloading: " + drive_file["name"])
+            print(" [i] File cached, not downloading: " + drive_file["name"])
             return
     else:
         Path(local_file_name).touch(exist_ok=True)
@@ -93,7 +93,7 @@ def _download_drive_file(drive_file, local_folder, drive_service):
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-            print(" [🛈] Downloading " + drive_file["name"] + ": " + str(status.progress() * 100) + "%")
+            print(" [i] Downloading " + drive_file["name"] + ": " + str(status.progress() * 100) + "%")
 
 def _download_drive_folder(drive_folder, local_folder, drive_service):
     if drive_folder is None:
@@ -127,10 +127,10 @@ def _download_drive_folder(drive_folder, local_folder, drive_service):
         _download_drive_folder(remote_folder, os.path.join(local_folder, remote_folder["name"]), drive_service)
 
 def initialSync(local_folder):
-    print(' [🛈] Begining initial synchronization')
+    print(' [i] Begining synchronization')
     credentials = _get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('drive', 'v3', http=http)
     exhibit_folder = _get_exhibit_folder(service)
     _download_drive_folder(exhibit_folder, local_folder, service)
-    print(' [✓] Initial synchronization complete')
+    print(' [✓] Synchronization complete')
