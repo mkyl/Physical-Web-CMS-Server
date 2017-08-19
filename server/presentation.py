@@ -7,6 +7,7 @@ from distutils.dir_util import copy_tree
 
 
 HTML_PAGE_HEADER = '<!DOCTYPE html> \n <html> \n <head> \
+<title> Physical Web Exhibit </title>\
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shoelace-css/1.0.0-beta13/shoelace.css"> \
 <style> \
 :root { \
